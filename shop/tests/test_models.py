@@ -1,38 +1,55 @@
 from django.test import TestCase
-from shop.models import Product, Purchase
-from datetime import datetime
+from shop.models import Product, Customer, CartItem
 
-class ProductTestCase(TestCase):
+
+class ProductModelTest(TestCase):
     def setUp(self):
-        Product.objects.create(name="book", price="740")
-        Product.objects.create(name="pencil", price="50")
+        self.product1 = Product.objects.create(name="Стол", price=2000)
+        self.product2 = Product.objects.create(name="Стул", price=1000)
 
-    def test_correctness_types(self):                   
-        self.assertIsInstance(Product.objects.get(name="book").name, str)
-        self.assertIsInstance(Product.objects.get(name="book").price, int)
-        self.assertIsInstance(Product.objects.get(name="pencil").name, str)
-        self.assertIsInstance(Product.objects.get(name="pencil").price, int)        
+    def test_product_fields_types(self):
+        self.assertIsInstance(self.product1.name, str)
+        self.assertIsInstance(self.product1.price, int)
+        self.assertIsInstance(self.product2.name, str)
+        self.assertIsInstance(self.product2.price, int)
 
-    def test_correctness_data(self):
-        self.assertTrue(Product.objects.get(name="book").price == 740)
-        self.assertTrue(Product.objects.get(name="pencil").price == 50)
+    def test_product_data_correctness(self):
+        self.assertEqual(self.product1.price, 2000)
+        self.assertEqual(self.product2.price, 1000)
 
 
-class PurchaseTestCase(TestCase):
+class CustomerModelTest(TestCase):
     def setUp(self):
-        self.product_book = Product.objects.create(name="book", price="740")
-        self.datetime = datetime.now()
-        Purchase.objects.create(product=self.product_book,
-                                person="Ivanov",
-                                address="Svetlaya St.")
+        self.customer = Customer.objects.create(name="TestUser", purchases_count=0)
 
-    def test_correctness_types(self):
-        self.assertIsInstance(Purchase.objects.get(product=self.product_book).person, str)
-        self.assertIsInstance(Purchase.objects.get(product=self.product_book).address, str)
-        self.assertIsInstance(Purchase.objects.get(product=self.product_book).date, datetime)
+    def test_discount_none(self):
+        self.assertEqual(self.customer.get_discount(), 0.0)
 
-    def test_correctness_data(self):
-        self.assertTrue(Purchase.objects.get(product=self.product_book).person == "Ivanov")
-        self.assertTrue(Purchase.objects.get(product=self.product_book).address == "Svetlaya St.")
-        self.assertTrue(Purchase.objects.get(product=self.product_book).date.replace(microsecond=0) == \
-            self.datetime.replace(microsecond=0))
+    def test_discount_5_percent(self):
+        self.customer.purchases_count = 5
+        self.assertEqual(self.customer.get_discount(), 0.05)
+
+    def test_discount_10_percent(self):
+        self.customer.purchases_count = 10
+        self.assertEqual(self.customer.get_discount(), 0.10)
+
+    def test_discount_15_percent(self):
+        self.customer.purchases_count = 20
+        self.assertEqual(self.customer.get_discount(), 0.15)
+
+
+class CartItemModelTest(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name="TestUser", purchases_count=10)
+        self.product = Product.objects.create(name="Табурет", price=500)
+
+    def test_total_price_with_discount(self):
+        item = CartItem.objects.create(customer=self.customer, product=self.product, quantity=4)
+        expected = int(500 * 4 * (1 - 0.10))
+        self.assertEqual(item.get_total_price(), expected)
+
+    def test_total_price_without_discount(self):
+        self.customer.purchases_count = 0
+        item = CartItem.objects.create(customer=self.customer, product=self.product, quantity=2)
+        expected = 500 * 2
+        self.assertEqual(item.get_total_price(), expected)
