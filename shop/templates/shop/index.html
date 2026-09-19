@@ -1,26 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Товары</title>
+    <meta charset="utf-8" />
+    <title>Магазин товаров для быта</title>
 </head>
 <body>
-    <div>
-        <h3>Список</h3>
-        <table>
-            <tr>
-                <td><p>Наименование</p></td>
-                <td><p>Цена</p></td>
-                <td></td>
-            </tr>
-            {% for p in products %}
-                <tr>
-                    <td><p>{{ p.name }}</p></td>
-                    <td><p>{{ p.price }}</p></td>
-                    <td><p><a href="/buy/{{ p.id }}">Купить</a></p></td>
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
+    <h1>Магазин товаров для быта</h1>
+
+    <p>Ваши покупки: {{ purchases }} шт.</p>
+    <p>Текущая скидка: {{ discount }}%</p>
+
+    <h4>Пороговые значения скидки:</h4>
+    <ul>
+        {% for d in discount_info %}
+            <li>После {{ d.limit }} покупок — скидка {{ d.percent }}%</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Список товаров</h3>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Наименование</th>
+            <th>Цена, руб.</th>
+            <th></th>
+        </tr>
+        {% for p in products %}
+        <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.price }}</td>
+            <td><a href="{% url 'add_to_cart' p.id %}">Добавить в корзину</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="{% url 'cart' %}">Перейти в корзину</a></p>
 </body>
 </html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Корзина</title>
+</head>
+<body>
+    <h1>Корзина</h1>
+
+    <p>Текущая скидка: {{ discount }}%</p>
+    <p>Всего покупок: {{ purchases }} шт.</p>
+
+    {% if items %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Товар</th>
+            <th>Количество</th>
+            <th>Стоимость с учетом скидки, руб.</th>
+            <th>Действие</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.get_total_price }}</td>
+            <td>
+                <form action="{% url 'remove_from_cart' item.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="submit" value="Удалить">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Итоговая сумма: {{ total }} руб.</h3>
+    {% else %}
+    <p>Корзина пуста.</p>
+    {% endif %}
+
+    <a href="{% url 'index' %}">Вернуться в каталог</a>
+</body>
+</html>
