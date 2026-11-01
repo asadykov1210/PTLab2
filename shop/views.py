@@ -16,16 +16,58 @@ def get_customer(request):
     return customer
 
 
+# ==========================================
+# АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
+# ==========================================
+
+def register_view(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Customer.objects.create(user=user, name=user.username)
+            login(request, user)
+            return redirect("index")
+    else:
+        form = UserCreationForm()
+    return render(request, "shop/register.html", {"form": form})
+
+
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            next_url = request.GET.get("next", "index")
+            return redirect(next_url)
+    else:
+        form = AuthenticationForm()
+    return render(request, "shop/login.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+
+# ==========================================
+# ОСНОВНАЯ ЛОГИКА МАГАЗИНА
+# ==========================================
+
+@login_required
 def index(request):
     products = Product.objects.all()
     customer = get_customer(request)
     discount = int(customer.get_discount() * 100) if customer else 0
     purchases = customer.purchases_count if customer else 0
+
     discount_info = [
         {"limit": 5, "percent": 5},
         {"limit": 10, "percent": 10},
         {"limit": 20, "percent": 15},
     ]
+
     return render(request, "shop/index.html", {
         "products": products,
         "discount": discount,
@@ -60,7 +102,6 @@ def confirm_add(request, id):
 def cart_view(request):
     customer = get_customer(request)
     items = CartItem.objects.filter(customer=customer)
-    # В корзине показываем сумму БЕЗ скидки — скидка применится при оформлении
     total = sum(item.get_total_price() for item in items)
     discount = int(customer.get_discount() * 100)
     return render(request, "shop/cart.html", {
@@ -96,14 +137,12 @@ def checkout(request):
         )
         item.delete()
 
-    # Пересчитываем количество покупок и, соответственно, скидку
     customer.update_purchases_count()
     return redirect("purchases")
 
 
 @login_required
 def purchases_view(request):
-    """Страница с историей покупок и итоговой суммой с учётом скидок."""
     customer = get_customer(request)
     purchases = Purchase.objects.filter(customer=customer).order_by("-created_at")
     total = sum(p.total_with_discount() for p in purchases)
@@ -112,33 +151,3 @@ def purchases_view(request):
         "total": total,
         "discount": int(customer.get_discount() * 100),
     })
-
-
-def register_view(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            Customer.objects.create(user=user, name=user.username)
-            login(request, user)
-            return redirect("index")
-    else:
-        form = UserCreationForm()
-    return render(request, "shop/register.html", {"form": form})
-
-
-def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect("index")
-    else:
-        form = AuthenticationForm()
-    return render(request, "shop/login.html", {"form": form})
-
-
-def logout_view(request):
-    logout(request)
-    return redirect("index")
