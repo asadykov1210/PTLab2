@@ -1,21 +1,62 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Магазин</title></head>
+<head>
+    <meta charset="utf-8">
+    <title>Магазин</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .discount-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        .discount-box h3 { margin-top: 0; font-size: 18px; color: #333; }
+        .discount-box ul { margin-bottom: 0; padding-left: 20px; }
+        .discount-box li { margin-bottom: 5px; }
+        .product-list { list-style-type: none; padding: 0; }
+        .product-item { margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #eee; }
+        .nav-links a { margin-right: 15px; text-decoration: none; color: #007bff; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
+</head>
 <body>
     <h1>Каталог товаров</h1>
-    <p>Ваша скидка: {{ discount }}% (куплено товаров: {{ purchases }})</p>
-    <ul>
-        {% for product in products %}
-            <li>
-                {{ product.name }} — {{ product.price }} руб.
-                <a href="{% url 'add_to_cart' product.id %}">Добавить в корзину</a>
-            </li>
-        {% endfor %}
-    </ul>
-    <p>
+    
+    <div class="nav-links" style="margin-bottom: 20px;">
         <a href="{% url 'cart' %}">Корзина</a> |
         <a href="{% url 'purchases' %}">Мои покупки</a> |
         <a href="{% url 'logout' %}">Выйти</a>
-    </p>
+    </div>
+
+    <!-- Блок с текущим статусом и правилами -->
+    <div class="discount-box">
+        <h3>Ваш статус:</h3>
+        <p>Текущая скидка: <strong>{{ discount }}%</strong> (куплено товаров: {{ purchases }} шт.)</p>
+        
+        <h3>Условия накопительной скидки:</h3>
+        <ul>
+            {% for info in discount_info %}
+                <li>От {{ info.limit }} купленных товаров — <strong>{{ info.percent }}%</strong> скидка</li>
+            {% endfor %}
+        </ul>
+        <p style="font-size: 12px; color: #666; margin-bottom: 0;">
+            * Скидка применяется к стоимости следующих покупок после оформления заказа.
+        </p>
+    </div>
+
+    <h2>Товары:</h2>
+    <ul class="product-list">
+        {% for product in products %}
+            <li class="product-item">
+                <strong>{{ product.name }}</strong> — {{ product.price }} руб. 
+                <a href="{% url 'add_to_cart' product.id %}" style="margin-left: 15px;">Добавить в корзину</a>
+            </li>
+        {% empty %}
+            <li>Товаров пока нет. Добавьте их через <a href="/admin/">админку</a>.</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
