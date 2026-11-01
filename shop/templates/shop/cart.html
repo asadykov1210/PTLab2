@@ -3,41 +3,61 @@
 <head>
     <meta charset="utf-8" />
     <title>Корзина</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        table { border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 8px 12px; text-align: left; }
+        .btn { padding: 8px 15px; cursor: pointer; background-color: #f0f0f0; border: 1px solid #ccc; }
+        .btn-primary { background-color: #28a745; color: white; border: none; font-size: 16px; padding: 10px 20px; }
+        .btn-primary:hover { background-color: #218838; }
+        .links { margin-top: 20px; }
+    </style>
 </head>
 <body>
     <h1>Корзина</h1>
 
-    <p>Текущая скидка: {{ discount }}%</p>
-    <p>Всего покупок: {{ purchases }} шт.</p>
+    <p>Текущая накопительная скидка: <strong>{{ discount }}%</strong></p>
+    <p>Всего куплено товаров (для скидки): {{ purchases }} шт.</p>
 
     {% if items %}
-    <table border="1" cellpadding="5">
+    <table border="1">
         <tr>
             <th>Товар</th>
             <th>Количество</th>
-            <th>Стоимость с учетом скидки, руб.</th>
+            <th>Стоимость (без скидки), руб.</th>
             <th>Действие</th>
         </tr>
         {% for item in items %}
         <tr>
             <td>{{ item.product.name }}</td>
             <td>{{ item.quantity }}</td>
+            <!-- В корзине скидка не применяется, поэтому просто стоимость -->
             <td>{{ item.get_total_price }}</td>
             <td>
                 <form action="{% url 'remove_from_cart' item.id %}" method="post" style="display:inline;">
                     {% csrf_token %}
-                    <input type="submit" value="Удалить">
+                    <input type="submit" value="Удалить" class="btn">
                 </form>
             </td>
         </tr>
         {% endfor %}
     </table>
 
-    <h3>Итоговая сумма: {{ total }} руб.</h3>
+    <h3>Итого к оплате: {{ total }} руб.</h3>
+
+    <!-- Кнопка оформления заказа (переносит корзину в историю покупок) -->
+    <form action="{% url 'checkout' %}" method="post" style="margin-top: 20px;">
+        {% csrf_token %}
+        <input type="submit" value="Оформить заказ" class="btn-primary">
+    </form>
+
     {% else %}
     <p>Корзина пуста.</p>
     {% endif %}
 
-    <a href="{% url 'index' %}">Вернуться в каталог</a>
+    <div class="links">
+        <a href="{% url 'index' %}">Вернуться в каталог</a> | 
+        <a href="{% url 'purchases' %}">Мои покупки</a>
+    </div>
 </body>
 </html>
