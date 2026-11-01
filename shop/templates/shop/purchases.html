@@ -1,0 +1,9 @@
+<h2>История покупок</h2>
+<p>Текущая скидка: {{ discount }}%</p>
+<ul>
+  {% for p in purchases %}
+    <li>{{ p.created_at|date:"d.m.Y H:i" }} — {{ p.product.name }} × {{ p.quantity }} — {{ p.total_with_discount }} руб.</li>
+  {% endfor %}
+</ul>
+<p><strong>Итого с учётом скидок: {{ total }} руб.</strong></p>
+<a href="{% url 'index' %}">На главную</a>
