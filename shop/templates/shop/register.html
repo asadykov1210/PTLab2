@@ -1,7 +1,13 @@
-<h2>Регистрация</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Зарегистрироваться</button>
-</form>
-<a href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Регистрация</title></head>
+<body>
+    <h2>Регистрация</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+    <p><a href="{% url 'login' %}">Уже есть аккаунт? Войти</a></p>
+</body>
+</html>
